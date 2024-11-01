@@ -1,5 +1,7 @@
 import unittest
 import sys, os
+
+from parameterized import parameterized
 from unittest.mock import MagicMock
 sys.path.append(os.path.join(os.getcwd(), "src"))
 
@@ -50,29 +52,16 @@ class BoardTest(unittest.TestCase):
         board.get_board = MagicMock(return_value = [[3, 0, 0], [-2, 0, 3], [1, -3, 0]])
 
 class PlayerTest(unittest.TestCase):
-    def test_get_unused_stones(self):
+    @parameterized.expand([
+        (1, 1, 1, ["small", "middle", "large"]),
+        (0, 1, 1, ["middle", "large"])
+    ])
+    def test_get_unused_stones(self, num_of_small, num_of_middle, num_of_large, ecpected):
         # case 1
-        player = Player(1, 1, 1)
+        player = Player(self, num_of_small, num_of_middle, num_of_large)
 
-        ecpected = ["small", "middle", "large"]
         actual = player.get_unused_stones()
 
-        self.assertEqual(ecpected, actual)
-
-        #case 2
-        player = Player(0, 1, 1)
-
-        ecpected = ["middle", "large"]
-        actual = player.get_unused_stones()
-        
-        self.assertEqual(ecpected, actual)
-
-        #case 3
-        player = Player(0, 0, 0)
-
-        ecpected = []
-        actual = player.get_unused_stones()
-        
         self.assertEqual(ecpected, actual)
 
     def test_get_own_board(self):
