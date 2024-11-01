@@ -1,8 +1,53 @@
 import unittest
 import sys, os
+from unittest.mock import MagicMock
 sys.path.append(os.path.join(os.getcwd(), "src"))
 
 from Game import *
+
+class BoardTest(unittest.TestCase):
+    def test_get_board_and_can_put_list(self):
+        #case 1
+        board = Board()
+
+        board.players["first"].get_own_board = MagicMock(return_value = [[3, 0, 0], [0, 0, 3], [1, 1, 0]])
+        board.players["second"].get_own_board = MagicMock(return_value = [[0, 0, 0], [2, 0, 0], [0, 3, 0]])
+
+        ecpected = [[3, 0, 0], [-2, 0, 3], [1, -3, 0]]
+        actual = board.get_board()
+
+        self.assertEqual(ecpected, actual)
+
+        ecpected = [[0, 1], [0, 2], [1, 1], [2, 2]]
+        actual = board.get_can_put_list("small")
+
+        self.assertEqual(ecpected, actual)
+
+        ecpected = [[0, 1], [0, 2], [1, 1], [2, 0], [2, 2]]
+        actual = board.get_can_put_list("middle")
+
+        self.assertEqual(ecpected, actual)
+
+        ecpected = [[0, 1], [0, 2], [1, 0], [1, 1], [2, 0], [2, 2]]
+        actual = board.get_can_put_list("large")
+
+        self.assertEqual(ecpected, actual)
+
+    # 未完成
+    def test_get_can_put_list():
+        board = Board()
+
+        board.players["first"].get_unused_stones = MagicMock(return_value = ["small", "middle"])
+
+        def mock_return_value(*args, **kwargs):
+            if args[0] == "small":
+                return [[0, 1], [0, 2], [1, 1], [2, 2]]
+            elif args[0] == "middle":
+                return [[0, 1], [0, 2], [1, 1], [2, 0], [2, 2]]
+            
+        board.get_can_put_list = MagicMock(side_effect = mock_return_value)
+
+        board.get_board = MagicMock(return_value = [[3, 0, 0], [-2, 0, 3], [1, -3, 0]])
 
 class PlayerTest(unittest.TestCase):
     def test_get_unused_stones(self):
