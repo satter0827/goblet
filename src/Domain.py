@@ -1,33 +1,5 @@
 import random
 import Statics
-
-class Goblet():
-    board = None
-    game_status = None
-    piece_of_player = None
-    current_player = None
-    turn = None
-
-    def play_game(self):
-        self.current_player = "first"
-
-        self.turn = 0
-
-        board = Board()
-
-        print("start")
-
-        current_player = "first"
-        can_move_list = board.get_can_move_list(current_player)
-        print(can_move_list)
-
-        current_player = "second"
-        can_move_list = board.get_can_move_list(current_player)
-        print(can_move_list)
-
-        print("end")
-
-        return 0
     
 class Player():
     def __init__(self, num_of_small=Statics.NUM_OF_SMALL_PIECES, num_of_middle=Statics.NUM_OF_MIDDLE_PIECES, num_of_large=Statics.NUM_OF_LARGE_PIECES):
@@ -52,26 +24,52 @@ class Player():
         for row in range(Statics.BOARD_SIZE):
             for col in range(Statics.BOARD_SIZE):
                 if self.stones["small"][row][col] == 1:
-                    own_board[row][col] = Statics.SMALL_STONE_ID
+                    own_board[row][col] = Statics.STONE_ID["small"]
 
                 if self.stones["middle"][row][col] == 1:
-                    own_board[row][col] = Statics.MIDDLE_STONE_ID
+                    own_board[row][col] = Statics.STONE_ID["middle"]
                 
                 if self.stones["large"][row][col] == 1:
-                    own_board[row][col] = Statics.LARGE_STONE_ID
+                    own_board[row][col] = Statics.STONE_ID["large"]
 
         return own_board
 
-class TypeOfStone():
-    def __init__(self, num):
-        self.num = num
-        self.board = [[0 for _ in range(Statics.BOARD_SIZE)] for _ in range(Statics.BOARD_SIZE)]
 
-    def change_stone(self, row, col):
-        if self.board[row][col] == 0:
-            self.board[row][col] = 1
-        elif self.board[row][col] == 1:
-            self.board[row][col] = 0
+class TypeOfStone():
+    """
+    Gobletにおける石を定義する
+    """
+    
+    def __init__(self, num_of_stones:int):
+        """
+        コンストラクタ
+
+        Args:
+            num_of_stones(int):石の個数
+        """
+
+        # 石の数を定義する
+        self.num_of_stones = num_of_stones
+
+        # 石単位のボードをOFFで初期化する
+        self.board = [[Statics.Stone.OFF for _ in range(Statics.BOARD_SIZE)] for _ in range(Statics.BOARD_SIZE)]
+
+    def change_stone(self, iRow:int, iCol:int) -> None:
+        """
+        引数で指定した石を反転させる
+
+        引数:
+            iRow(int):行
+            iCol(int):列
+        """
+
+        #　反転処理
+        if self.board[iRow][iCol] == Statics.Stone.OFF:
+            # OFF → ON
+            self.board[iRow][iCol] = Statics.Stone.ON
+        elif self.board[iRow][iCol] == Statics.Stone.ON:
+            # ON →O FF
+            self.board[iRow][iCol] = Statics.Stone.OFF
 
 class Board():
     def __init__(self, num_of_small=Statics.NUM_OF_SMALL_PIECES, num_of_middle=Statics.NUM_OF_MIDDLE_PIECES, num_of_large=Statics.NUM_OF_LARGE_PIECES):

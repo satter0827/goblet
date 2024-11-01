@@ -5,38 +5,41 @@ from parameterized import parameterized
 from unittest.mock import MagicMock
 sys.path.append(os.path.join(os.getcwd(), "src"))
 
-from Game import *
+from Domain import *
+import Statics
 
 class BoardTest(unittest.TestCase):
-    def test_get_board_and_can_put_list(self):
-        #case 1
+    @parameterized.expand([
+        # case 1
+        (
+            [[3, 0, 0], [0, 0, 3], [1, 1, 0]],
+            [[0, 0, 0], [2, 0, 0], [0, 3, 0]],
+            [[3, 0, 0], [-2, 0, 3], [1, -3, 0]],
+            [[0, 1], [0, 2], [1, 1], [2, 2]],
+            [[0, 1], [0, 2], [1, 1], [2, 0], [2, 2]],
+            [[0, 1], [0, 2], [1, 0], [1, 1], [2, 0], [2, 2]]
+        )
+    ])
+    def test_get_board_and_can_put_list(self, mock_1, mock_2, ecpected_1, ecpected_2, ecpected_3, ecpected_4):
         board = Board()
 
-        board.players["first"].get_own_board = MagicMock(return_value = [[3, 0, 0], [0, 0, 3], [1, 1, 0]])
-        board.players["second"].get_own_board = MagicMock(return_value = [[0, 0, 0], [2, 0, 0], [0, 3, 0]])
+        board.players["first"].get_own_board = MagicMock(return_value = mock_1)
+        board.players["second"].get_own_board = MagicMock(return_value = mock_2)
 
-        ecpected = [[3, 0, 0], [-2, 0, 3], [1, -3, 0]]
         actual = board.get_board()
+        self.assertEqual(ecpected_1, actual)
 
-        self.assertEqual(ecpected, actual)
-
-        ecpected = [[0, 1], [0, 2], [1, 1], [2, 2]]
         actual = board.get_can_put_list("small")
+        self.assertEqual(ecpected_2, actual)
 
-        self.assertEqual(ecpected, actual)
-
-        ecpected = [[0, 1], [0, 2], [1, 1], [2, 0], [2, 2]]
         actual = board.get_can_put_list("middle")
+        self.assertEqual(ecpected_3, actual)
 
-        self.assertEqual(ecpected, actual)
-
-        ecpected = [[0, 1], [0, 2], [1, 0], [1, 1], [2, 0], [2, 2]]
         actual = board.get_can_put_list("large")
-
-        self.assertEqual(ecpected, actual)
+        self.assertEqual(ecpected_4, actual)
 
     # 未完成
-    def test_get_can_put_list():
+    def test_get_can_put_list(self):
         board = Board()
 
         board.players["first"].get_unused_stones = MagicMock(return_value = ["small", "middle"])
@@ -53,61 +56,81 @@ class BoardTest(unittest.TestCase):
 
 class PlayerTest(unittest.TestCase):
     @parameterized.expand([
-        (1, 1, 1, ["small", "middle", "large"]),
-        (0, 1, 1, ["middle", "large"])
+        (Player(1, 1, 1), ["small", "middle", "large"]),
+        (Player(0, 1, 1), ["middle", "large"]),
     ])
-    def test_get_unused_stones(self, num_of_small, num_of_middle, num_of_large, ecpected):
-        # case 1
-        player = Player(self, num_of_small, num_of_middle, num_of_large)
+    def test_get_unused_stones(self, player, ecpected):
+        player = player
 
         actual = player.get_unused_stones()
 
         self.assertEqual(ecpected, actual)
 
-    def test_get_own_board(self):
-        # case 1
+    @parameterized.expand([
+        (Player(1, 1, 1), [[1, 0, 0], [1, 0, 0], [0, 0, 1]], [[1, 0, 0], [0, 1, 0], [1, 0, 0]], [[1, 0, 0], [1, 0, 0], [1, 0, 0]], [[3, 0, 0], [3, 2, 0], [3, 0, 1]]),
+        (Player(1, 1, 1), [[1, 0, 0], [1, 0, 0], [1, 0, 0]], [[0, 1, 0], [0, 1, 0], [0, 1, 0]], [[0, 0, 1], [0, 0, 1], [0, 0, 1]], [[1, 2, 3], [1, 2, 3], [1, 2, 3]]),
+    ])
+    def test_get_own_board(self, player, stones_of_small, stones_of_middle, stones_of_large, expected):
         player = Player(1, 1, 1)
-        player.stones["small"] = [[1, 0, 0], [1, 0, 0], [0, 0, 1]]
-        player.stones["middle"] = [[1, 0, 0], [0, 1, 0], [1, 0, 0]]
-        player.stones["large"] = [[1, 0, 0], [1, 0, 0], [1, 0, 0]]
+        player.stones["small"] = stones_of_small
+        player.stones["middle"] = stones_of_middle
+        player.stones["large"] = stones_of_large
 
-        ecpected = [[3, 0, 0], [3, 2, 0], [3, 0, 1]]
+        ecpected = expected
         actual = player.get_own_board()
-
-        # case 2
-        player = Player(1, 1, 1)
-        player.stones["small"] = [[1, 0, 0], [1, 0, 0], [1, 0, 0]]
-        player.stones["middle"] = [[0, 1, 0], [0, 1, 0], [0, 1, 0]]
-        player.stones["large"] = [[0, 0, 1], [0, 0, 1], [0, 0, 1]]
-
-        ecpected = [[1, 2, 3], [1, 2, 3], [1, 2, 3]]
-        actual = player.get_own_board()
-
-        self.assertEqual(ecpected, actual)
 
 class TypeOfStoneTest(unittest.TestCase):
-    def test_change_stone(self):
-        # case 1
-        type_of_stone = TypeOfStone(1)
-        type_of_stone.board = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+    # テストケース
+    test_list = []
+    
+    # case 1
+    num_of_stones = 1
+    test_board = [
+        [Statics.Stone.OFF, Statics.Stone.OFF, Statics.Stone.OFF], 
+        [Statics.Stone.OFF, Statics.Stone.OFF, Statics.Stone.OFF],
+        [Statics.Stone.OFF, Statics.Stone.OFF, Statics.Stone.OFF]
+    ]
+    row = 1
+    col = 1
+    expected = [
+        [Statics.Stone.OFF, Statics.Stone.OFF, Statics.Stone.OFF], 
+        [Statics.Stone.OFF, Statics.Stone.ON, Statics.Stone.OFF],
+        [Statics.Stone.OFF, Statics.Stone.OFF, Statics.Stone.OFF]
+    ]
 
-        type_of_stone.change_stone(1, 1)
+    test_list.append((num_of_stones, test_board, row, col, expected))
 
-        ecpected = [[0, 0, 0], [0, 1, 0], [0, 0, 0]]
+    # case 2
+    num_of_stones = 1
+    test_board = [
+        [Statics.Stone.ON, Statics.Stone.ON, Statics.Stone.ON], 
+        [Statics.Stone.ON, Statics.Stone.ON, Statics.Stone.ON],
+        [Statics.Stone.ON, Statics.Stone.ON, Statics.Stone.ON]
+    ]
+    row = 1
+    col = 1
+    expected = [
+        [Statics.Stone.ON, Statics.Stone.ON, Statics.Stone.ON], 
+        [Statics.Stone.ON, Statics.Stone.OFF, Statics.Stone.ON],
+        [Statics.Stone.ON, Statics.Stone.ON, Statics.Stone.ON]
+    ]
+
+    test_list.append((num_of_stones, test_board, row, col, expected))
+
+    @parameterized.expand([case for case in test_list])
+    def test_change_stone(self, num_of_stones, board, row, col, expected):
+        # 石の個数を設定
+        type_of_stone = TypeOfStone(num_of_stones)
+        type_of_stone.board = board
+
+        # 石を反転させる
+        type_of_stone.change_stone(row, col)
+
+        # 結果を取得
         actual = type_of_stone.board
 
-        self.assertEqual(ecpected, actual)
-
-        # case 2
-        type_of_stone = TypeOfStone(1)
-        type_of_stone.board = [[1, 1, 1], [1, 1, 1], [1, 1, 1]]
-
-        type_of_stone.change_stone(1, 1)
-
-        ecpected = [[1, 1, 1], [1, 0, 1], [1, 1, 1]]
-        actual = type_of_stone.board
-
-        self.assertEqual(ecpected, actual)    
+        # 評価
+        self.assertEqual(expected, actual)
 
 if __name__ == '__main__':
     unittest.main()

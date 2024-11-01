@@ -1,3 +1,5 @@
+from enum import IntEnum, Enum, auto
+
 BOARD_SIZE = 3
 
 NUM_OF_SMALL_PIECES = 3
@@ -16,3 +18,16 @@ STONE_ID = {
     "middle": 2,
     "large": 3,
 }
+
+class Stone_Size(Enum):
+    SMALL = auto()
+    MIDDLE = auto()
+    LARGE = auto()
+
+class Matrix(IntEnum):
+    ROW = 3
+    COL = 3
+
+class Stone(Enum):
+    ON = auto()
+    OFF = auto()
